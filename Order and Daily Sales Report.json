@@ -1,0 +1,235 @@
+{
+  "name": "Order and Daily Sales Report",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -32
+      ],
+      "id": "3744f46c-f96d-4345-979b-69502090e737",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "014d85fd-cdff-462f-80cd-dfc6698e1474",
+              "name": "order_id",
+              "value": "={{ $json.order_id }}",
+              "type": "number"
+            },
+            {
+              "id": "1ed19736-d542-46c8-bc54-7f1f41ce55ba",
+              "name": "customer",
+              "value": "={{ $json.customer }}",
+              "type": "string"
+            },
+            {
+              "id": "371e9a88-360e-4b76-9e71-b57f7b962a9a",
+              "name": "amount",
+              "value": "={{ $json.amount }}",
+              "type": "number"
+            },
+            {
+              "id": "e6f15e81-eb9d-43be-a4d1-9ec0dbb3900f",
+              "name": "tags[0]",
+              "value": "={{ $json.tags }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "141861a7-9cbf-4284-85f5-359012f3d115",
+      "name": "UpdateFieldNames"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        -32
+      ],
+      "id": "faa684b6-eb11-4e52-bc03-60da968f19f0",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/ac972db3-1b88-4dae-9418-4aa516d88b1b",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "generated_at",
+              "value": "={{ $(\"SetReportMetadata\").first().json.generated_at }}"
+            },
+            {
+              "name": "total_orders",
+              "value": "={{ $(\"SetReportMetadata\").first().json.total_orders }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        592,
+        -32
+      ],
+      "id": "feac57f9-085b-45ea-9579-bd2059e4e1df",
+      "name": "SendReport"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "29d29cb7-a0d8-4554-bf03-808706bba54a",
+              "name": "report_title",
+              "value": "Daily E-Commerce Sales",
+              "type": "string"
+            },
+            {
+              "id": "3e5a7eaa-6553-4872-9411-0c48c0d1c1ef",
+              "name": "generated_at",
+              "value": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "adda3918-70a6-4d8b-ae42-3ce7385cd9d4",
+              "name": "total_orders",
+              "value": "={{ $input.all().length }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        144,
+        -32
+      ],
+      "id": "3a49198d-269f-43f4-8f1a-457490fc1d0e",
+      "name": "SetReportMetadata"
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {
+          "order_id": 101,
+          "customer": "Ahmad",
+          "amount": 150,
+          "tags": [
+            "paid",
+            "express",
+            "completed"
+          ]
+        }
+      },
+      {
+        "json": {
+          "order_id": 102,
+          "customer": "Siti",
+          "amount": 280,
+          "tags": [
+            "paid",
+            "standard",
+            "completed"
+          ]
+        }
+      },
+      {
+        "json": {
+          "order_id": 103,
+          "customer": "Maniam",
+          "amount": 90,
+          "tags": [
+            "pending",
+            "standard",
+            "open"
+          ]
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "UpdateFieldNames",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateFieldNames": {
+      "main": [
+        [
+          {
+            "node": "SetReportMetadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "SendReport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetReportMetadata": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "84254448-542a-4298-9b69-a5b9e156e2bb",
+  "meta": {
+    "instanceId": "d19d5668ca514d80ed7cf1ec3d689583f77b8d9b257b33a1eac78fa41d4f8b33"
+  },
+  "nodeGroups": [],
+  "id": "qNy7Jdt17e8L0A2e",
+  "tags": []
+}
